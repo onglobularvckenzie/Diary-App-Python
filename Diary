@@ -1,0 +1,46 @@
+import os
+import datetime
+
+def clear_screen():
+    if os.name == 'nt':
+        os.system('cls')
+    else:
+        os.system('clear')
+
+def write_entry():
+    clear_screen()
+    entry = input("Write your entry:\n")
+    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open("diary.txt", "a") as file:
+        file.write(f"\n\n{date}\n{entry}")
+
+def read_entries():
+    clear_screen()
+    try:
+        with open("diary.txt", "r") as file:
+            entries = file.read()
+            print(entries)
+    except FileNotFoundError:
+        print("No entries found.")
+
+def main():
+    while True:
+        print("\n=== Personal Diary ===")
+        print("1. Write a new entry")
+        print("2. View past entries")
+        print("3. Exit")
+        
+        choice = input("Enter your choice (1/2/3): ")
+        
+        if choice == '1':
+            write_entry()
+        elif choice == '2':
+            read_entries()
+        elif choice == '3':
+            print("Exiting the diary application. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please enter 1, 2, or 3.")
+
+if __name__ == "__main__":
+    main()
