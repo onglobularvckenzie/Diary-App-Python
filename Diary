@@ -1,28 +1,67 @@
 import os
 import datetime
+from cryptography.fernet import Fernet
 
+# Generate a key for encryption
+def generate_key():
+    return Fernet.generate_key()
+
+# Load the encryption key
+def load_key():
+    try:
+        return open("diary_key.key", "rb").read()
+    except FileNotFoundError:
+        key = generate_key()
+        with open("diary_key.key", "wb") as key_file:
+            key_file.write(key)
+        return key
+
+# Encrypt data
+def encrypt_data(data, key):
+    cipher_suite = Fernet(key)
+    cipher_text = cipher_suite.encrypt(data.encode())
+    return cipher_text
+
+# Decrypt data
+def decrypt_data(cipher_text, key):
+    cipher_suite = Fernet(key)
+    plain_text = cipher_suite.decrypt(cipher_text).decode()
+    return plain_text
+
+# Clear screen based on OS
 def clear_screen():
     if os.name == 'nt':
         os.system('cls')
     else:
         os.system('clear')
 
+# Write entry to the encrypted diary file
 def write_entry():
     clear_screen()
     entry = input("Write your entry:\n")
     date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    key = load_key()
+    encrypted_entry = encrypt_data(entry, key)
+    
     with open("diary.txt", "a") as file:
-        file.write(f"\n\n{date}\n{entry}")
+        file.write(f"\n\n{date}\n{encrypted_entry}")
 
+# Read and decrypt entries from the encrypted diary file
 def read_entries():
     clear_screen()
     try:
+        key = load_key()
         with open("diary.txt", "r") as file:
-            entries = file.read()
-            print(entries)
+            entries = file.read().split('\n\n')
+            for entry in entries:
+                if entry:
+                    date, encrypted_entry = entry.split('\n', 1)
+                    decrypted_entry = decrypt_data(encrypted_entry, key)
+                    print(f"\n{date}\n{decrypted_entry}")
     except FileNotFoundError:
         print("No entries found.")
 
+# Main function to manage the diary application
 def main():
     while True:
         print("\n=== Personal Diary ===")
